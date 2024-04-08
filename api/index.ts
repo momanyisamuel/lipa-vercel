@@ -7,7 +7,10 @@ const PORT = process.env.PORT;
 app.use(express.json());
 
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+    const { name = 'World' } = req.query
+    return res.json({
+      message: `Hello ${name}!`,
+    })
 });
 
 app.listen(PORT, () => {
