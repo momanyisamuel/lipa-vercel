@@ -1,0 +1,130 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+model User {
+  id       String @id @default(cuid()) @map("_id")
+  email    String @unique
+  name     String
+  password String
+  role     String
+}
+
+model Account {
+  id               String     @id @default(cuid()) @map("_id")
+  account_number   String     @unique @default(cuid())
+  pendingBalance   Int
+  availableBalance Int
+  accountType      String
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  inventory        Inventory? @relation(fields: [inventoryId], references: [id])
+  inventoryId      String?
+}
+
+model Customer {
+  id          String   @id @default(cuid()) @map("_id")
+  name        String
+  email       String?
+  phoneNumber String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  orders      Order[]
+}
+
+model Category {
+  id          String    @id @default(cuid()) @map("_id")
+  name        String
+  description String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
+
+model Expense {
+  id          String     @id @default(cuid()) @map("_id")
+  name        String
+  description String
+  amount      Int
+  date        DateTime   @default(now())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  inventory   Inventory? @relation(fields: [inventoryId], references: [id])
+  inventoryId String?
+}
+
+model InventoryItem {
+  id           String     @id @default(cuid()) @map("_id")
+  name         String
+  description  String
+  quantity     Int
+  buyingPrice  Int
+  sellingPrice Int
+  productId    String
+  product      Product    @relation(fields: [productId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  inventory    Inventory? @relation(fields: [inventoryId], references: [id])
+  inventoryId  String?
+}
+
+model Inventory {
+  id             String          @id @default(cuid()) @map("_id")
+  name           String
+  description    String
+  status         String          @default("active")
+  totalItems     Int             @default(0)
+  totalValue     Int             @default(0)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  inventoryItems InventoryItem[]
+  orderItems     OrderItem[]
+  accounts       Account[]
+  expenses       Expense[]
+}
+
+model Order {
+  id             String      @id @default(cuid()) @map("_id")
+  orderNumber    String      @unique @default(cuid())
+  total          Int
+  status         String
+  customerId     String?
+  customer       Customer?   @relation(fields: [customerId], references: [id])
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  inventoryItems OrderItem[]
+}
+
+model OrderItem {
+  id          String     @id @default(cuid()) @map("_id")
+  quantity    Int
+  price       Int
+  inventoryId String?
+  inventory   Inventory? @relation(fields: [inventoryId], references: [id])
+  orderId     String
+  order       Order      @relation(fields: [orderId], references: [id])
+  productId   String
+  product     Product    @relation(fields: [productId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Product {
+  id             String          @id @default(cuid()) @map("_id")
+  name           String
+  description    String
+  price          Int
+  image          String?
+  category       Category?       @relation(fields: [categoryId], references: [id])
+  categoryId     String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  inventoryItems InventoryItem[]
+  orderItems     OrderItem[]
+}
